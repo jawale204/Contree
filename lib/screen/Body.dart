@@ -13,21 +13,22 @@ class Body extends StatefulWidget {
 }
 
 class _BodyState extends State<Body>with TickerProviderStateMixin {
-  Key key = UniqueKey();
  TabController _controller;
   @override
   initState(){
     super.initState();
     _controller=TabController(initialIndex: 1,length: 3, vsync: this,);
   }
- 
+
+ final GlobalKey<ScaffoldState> _scaffoldstate =
+      new GlobalKey<ScaffoldState>(); 
   @override
   Widget build(BuildContext context) {
     final user=Provider.of<HandleUser>(context);
     return ChangeNotifierProvider(
       create: (c)=>Groups(),
           child: Scaffold(
-            key: key,
+            key: _scaffoldstate ,
         appBar: AppBar(actions: <Widget>[
           IconButton(icon: Icon(Icons.power_settings_new), onPressed:(){ 
            user.logout(context);
@@ -46,7 +47,7 @@ class _BodyState extends State<Body>with TickerProviderStateMixin {
         controller: _controller,
       children: <Widget>[
           PersonalExp(),
-          Group(),
+          Group(_scaffoldstate),
           Activity()
         ]),
   

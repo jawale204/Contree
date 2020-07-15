@@ -153,14 +153,16 @@ class _GroupContentState extends State<GroupContent> {
                   initialData: b,
                   future: allExpenses,
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    Future.delayed(Duration(milliseconds: 500));
                     if (snapshot.hasData) {
                       List<ExpensTile> names = [];
                       var i = 0;
                       snapshot.data.documents.forEach((data1) {
                         var a = SingleGroup.fromDocument(data1);
-                        names.add(ExpensTile(
+                        setState(() {
+                           names.add(ExpensTile(
                             a.name, a.date, a.expense, sg, widget.obj, i));
+                        });
+                       
                         i = i + 1;
                       });
 
@@ -283,77 +285,6 @@ class _GroupContentState extends State<GroupContent> {
 //   }
 // }
 
-// class ExpenseTile extends StatelessWidget {
-//   final String name;
-//   final DateTime time;
-//   final List<dynamic> expense;
-//   final List<List> cal = [];
-//   static int myContri;
-//   static int mySpent;
-//   final SingleGroup sg;
-//   final Groups obj;
-//   final int docId;
-//   ExpenseTile(
-//       this.name, this.time, this.expense, this.sg, this.obj, this.docId);
-
-//   dothis() {
-//     var j = 1;
-//     for (var i = 1; i <= expense.length / 6; i++) {
-//       if (HandleUser.userinfo.uid == expense[j + 1]) {
-//         myContri = expense[j + 4];
-//         mySpent = expense[j + 5];
-//       }
-//       var a = [
-//         expense[j],
-//         expense[j + 1],
-//         expense[j + 2],
-//         expense[j + 3],
-//         expense[j + 4],
-//         expense[j + 5]
-//       ];
-//       cal.add(a);
-//       j = j + 6;
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     dothis();
-
-//     return cal == null
-//         ? Container(
-//             height: 60,
-//             margin: EdgeInsets.all(3.0),
-//             decoration: BoxDecoration(
-//               borderRadius: BorderRadius.circular(10.0),
-//               color: Colors.grey[300],
-//             ),
-//             child: ListTile(
-//               isThreeLine: true,
-//               title: Text(name),
-//               subtitle: Text("Your Conti : " + myContri.toString()),
-//               trailing: Column(
-//                 children: <Widget>[
-//                   Text("Total Amount : " + expense[0].toString()),
-//                   if ((myContri - mySpent) < 0)
-//                     Text("You owe : " + (-(myContri - mySpent)).toString()),
-//                   if ((myContri - mySpent) > 0)
-//                     Text("You lend : " + (myContri - mySpent).toString()),
-//                   if ((myContri - mySpent) == 0) Text(" Settled "),
-//                 ],
-//               ),
-//               onTap: () {
-//                 Navigator.push(
-//                     context,
-//                     MaterialPageRoute(
-//                         builder: (context) => ExpenseDetails(
-//                             name, cal, time, expense[0], sg, obj, docId)));
-//               },
-//             ))
-//         : circularProgress();
-//   }
-// }
-
 class ExpensTile extends StatefulWidget {
   final String name;
   final DateTime time;
@@ -373,19 +304,17 @@ class _ExpensTileState extends State<ExpensTile> {
   static int mySpent;
 
   @override
-   initState() {
+  initState() {
     super.initState();
     dothis();
   }
 
-  dothis()  {
+  dothis() {
     var j = 1;
     for (var i = 1; i <= widget.expense.length / 6; i++) {
       if (HandleUser.userinfo.uid == widget.expense[j + 2]) {
         myContri = widget.expense[j + 4];
         mySpent = widget.expense[j + 5];
-        print(myContri);
-        print(mySpent);
       }
       var a = [
         widget.expense[j],
@@ -398,7 +327,7 @@ class _ExpensTileState extends State<ExpensTile> {
       cal.add(a);
       j = j + 6;
     }
-    print(cal);
+  
   }
 
   @override

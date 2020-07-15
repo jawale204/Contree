@@ -11,6 +11,8 @@ DateTime date = DateTime.now();
 
 class Group extends StatefulWidget {
   static String id = 'Group';
+  final GlobalKey<ScaffoldState> scaffoldcontroller;
+  Group(this.scaffoldcontroller);
   @override
   _GroupState createState() => _GroupState();
 }
@@ -18,6 +20,23 @@ class Group extends StatefulWidget {
 class _GroupState extends State<Group> {
   TextEditingController controller = TextEditingController();
   Future<QuerySnapshot> b;
+
+  snackBar(bool present) {
+ 
+    final snackBar = SnackBar(content: Text('Group Created'),duration: Duration(seconds: 2, milliseconds: 500),);
+    widget.scaffoldcontroller.currentState.showSnackBar(snackBar);
+  }
+  dothis(groupsdoc)async {
+    DateTime date1 = DateTime.now();
+    await groupsdoc.createGroup(controller.value.text.toString(), date1);
+    controller.clear();
+   
+ 
+       Navigator.pop(context);
+
+    // snackBar(p);
+   // Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,10 +105,11 @@ class _GroupState extends State<Group> {
                                       .toString()
                                       .isNotEmpty) {
                                     //creates Group
-                                    groupsdoc.createGroup(
-                                        controller.value.text.toString(), date);
-                                    controller.clear();
-                                    Navigator.pop(context);
+                                    dothis(groupsdoc);
+                                    // groupsdoc.createGroup(
+                                    //     controller.value.text.toString(), date);
+                                    // controller.clear();
+                                    // Navigator.pop(context);
                                   }
                                 },
                                 txt: 'Save',

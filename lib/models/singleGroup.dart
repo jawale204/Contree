@@ -28,12 +28,16 @@ class SingleGroup with ChangeNotifier {
   }
 
   //adds expense with expense list its description //obj for that particular group info
-  addExpense(expense, description, obj, time) {
+  addExpense(expense, description, obj, time) async{
     groups
         .document(obj.groupId)
         .collection('Expense')
         .add({'name': description, 'expense': expense, 'Date&Time': time});
-
+   await userRef
+        .document(HandleUser.userinfo.uid)
+        .collection('Activity')
+        .document(time.toString().substring(0, 23))
+        .setData({'data': 'You added a Expense in group : ${obj.groupName}','date':time});
     notifyListeners();
   }
 
@@ -60,17 +64,23 @@ class SingleGroup with ChangeNotifier {
   }
 
   Future<bool> deleteExpense(docId, obj) async {
+    DateTime time = DateTime.now();
     await groups
         .document(obj.groupId)
         .collection('Expense')
         .document(docID[docId][0])
         .delete();
-
+    await userRef
+        .document(HandleUser.userinfo.uid)
+        .collection('Activity')
+        .document(time.toString().substring(0, 23))
+        .setData({'data': 'You deleted a Expense in group : ${obj.groupName}','date':time});
     notifyListeners();
     return true;
   }
 
   Future<bool> addMember(user, Groups obj) async {
+    DateTime time = DateTime.now();
     bool present;
     QuerySnapshot isPresent = await Firestore.instance
         .collection('GroupsDB')
@@ -100,6 +110,11 @@ class SingleGroup with ChangeNotifier {
     } else {
       present = true;
     }
+    await userRef
+        .document(HandleUser.userinfo.uid)
+        .collection('Activity')
+        .document(time.toString().substring(0, 23))
+        .setData({'data': 'You added ${user.email} in group : ${obj.groupName}','date':time});
     notifyListeners();
     return (present);
   }

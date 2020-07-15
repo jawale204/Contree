@@ -31,12 +31,11 @@ class HandleUser with ChangeNotifier {
   bool isAuth = false;
   static User userinfo;
   User tocopy;
-
   login() async {
-    final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
+    GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
     final GoogleSignInAuthentication googleSignInAuthentication =
         await googleSignInAccount.authentication;
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
+     AuthCredential  credential = GoogleAuthProvider.getCredential(
         idToken: googleSignInAuthentication.idToken,
         accessToken: googleSignInAuthentication.accessToken);
     final AuthResult authResult = await _auth.signInWithCredential(credential);
@@ -55,6 +54,8 @@ class HandleUser with ChangeNotifier {
 
     notifyListeners();
   }
+
+ 
 
   logout(context) async {
     await googleSignIn.signOut();

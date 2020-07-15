@@ -13,24 +13,25 @@ class Groups with ChangeNotifier {
   Groups({this.groupName, this.groupId, this.date});
 
 //creates a new groups with input as the name of group
- Future<bool> createGroup(groupname, date) async{
+  Future<bool> createGroup(groupname, date) async {
     DocumentReference doc = groups.document();
+    DateTime time=DateTime.now();
     var groupID = doc.documentID;
-   await doc
-        .collection('Members')
-        .document()
-        .setData(
-          {
-            'name':HandleUser.userinfo.displayName,
-            'uid':HandleUser.userinfo.uid,
-            'photoUrl': HandleUser.userinfo.photoUrl,
-            'email': HandleUser.userinfo.email,
-          }
-        );
-   await userRef
+    await doc.collection('Members').document().setData({
+      'name': HandleUser.userinfo.displayName,
+      'uid': HandleUser.userinfo.uid,
+      'photoUrl': HandleUser.userinfo.photoUrl,
+      'email': HandleUser.userinfo.email,
+    });
+    await userRef
         .document(HandleUser.userinfo.uid)
         .collection('Groups')
         .add({'name': groupname, 'groupid': groupID, 'Date&Time': date});
+    await userRef
+        .document(HandleUser.userinfo.uid)
+        .collection('Activity')
+        .document(time.toString().substring(0, 23))
+        .setData({'data': 'You created a Group : $groupname'});
     notifyListeners();
 
     return (true);

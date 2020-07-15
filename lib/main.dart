@@ -1,4 +1,5 @@
 import 'package:Contri/models/HandleUser.dart';
+import 'package:Contri/models/dailyexpenseandActivity.dart';
 import 'package:Contri/models/singleGroup.dart';
 import 'package:Contri/screen/Body.dart';
 import 'package:Contri/screen/Welcome.dart';
@@ -38,6 +39,9 @@ class _NotesState extends State<Notes> {
            ),
          ChangeNotifierProvider<SingleGroup>(
          create:  (context)=>SingleGroup()
+           ),
+         ChangeNotifierProvider(
+         create:  (context)=>Daily()
            ),
         ],
           child: MaterialApp(

@@ -89,14 +89,15 @@ Container useRResult(User users, context, obj,key) {
    
    snackBar(bool present) {
     var message = !present ? 'Member added' : ' Member already exists';
-    final snackBar = SnackBar(content: Text(message));
+    final snackBar = SnackBar(content: Text(message),duration: Duration(seconds: 2, milliseconds: 500),);
     key.currentState.showSnackBar(snackBar);
+
   }
   final sg = Provider.of<SingleGroup>(context);
   doit() async {
    bool p = await sg.addMember(users, obj);
-    snackBar(p);
     Navigator.pop(context);
+    snackBar(p);
   }
 
   return Container(

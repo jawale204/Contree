@@ -15,7 +15,7 @@ class CreateExpense extends StatefulWidget {
 class _CreateExpenseState extends State<CreateExpense> {
   final TextEditingController description = TextEditingController();
   final TextEditingController amount = TextEditingController();
-  //COntrollers for input values of contri and spent of user
+  //COntrollers f o r input values of contri and spent of user
   List<TextEditingController> contribution = [];
   List<TextEditingController> spent = [];
   //member name and id in list
@@ -26,6 +26,7 @@ class _CreateExpenseState extends State<CreateExpense> {
   DateTime time = DateTime.now();
 
   final _formKey = GlobalKey<FormState>();
+  List<List> useThisForMembers = [];
   @override
   initState() {
     super.initState();
@@ -41,6 +42,15 @@ class _CreateExpenseState extends State<CreateExpense> {
                 ]
               : members.add([key, value])
         });
+    for (var i = 0; i < (members.length); i++) {
+      Map a = members[i][1];
+      useThisForMembers.add([
+        a['email'],
+        a['name'],
+        a['uid'],
+        a['photoUrl'],
+      ]);
+    }
     members.forEach((element) {
       var contricontroller = new TextEditingController();
       var spentcontroller = new TextEditingController();
@@ -55,16 +65,17 @@ class _CreateExpenseState extends State<CreateExpense> {
   convert() {
     List<dynamic> expense = [int.parse(amount.value.text)];
     for (var i = 0; i < members.length; i++) {
-      var memberholder = members[i][1].values.toList();
-      expense.add(memberholder[0]);
-      expense.add(memberholder[1]);
-      expense.add(memberholder[2]);
-      expense.add(memberholder[3]);
+      //var memberholder = members[i][1].values.toList();
+      expense.add(useThisForMembers[i][0]);
+      expense.add(useThisForMembers[i][1]);
+      expense.add(useThisForMembers[i][2]);
+      expense.add(useThisForMembers[i][3]);
       expense.add(contrisum[i]);
       expense.add(spentsum[i]);
     }
-    //creates obj to add expense
-     widget.sg.addExpense(expense, description.value.text, widget.obj, time);
+    print(expense);
+   // creates obj to add expense
+    widget.sg.addExpense(expense, description.value.text, widget.obj, time);
     setState(() {
       done = true;
     });
@@ -100,7 +111,6 @@ class _CreateExpenseState extends State<CreateExpense> {
         this.spentsum == null ? this.spentsum = [val] : this.spentsum.add(val);
       });
       if ((spentsum == contrisum) && (contrisum == mainamount)) {
-        print(contrisum);
         convert();
       } else {
         //if amount and sum of contri and sum of spent is not equal it shows error in the error box
@@ -213,7 +223,7 @@ class _CreateExpenseState extends State<CreateExpense> {
               shrinkWrap: true,
               itemCount: members.length,
               itemBuilder: (BuildContext context, int index) {
-                List memberholder = members[index][1].values.toList();
+                // List memberholder = members[index][1].values.toList();
                 return Container(
                   height: 40,
                   margin: EdgeInsets.all(3.0),
@@ -232,7 +242,8 @@ class _CreateExpenseState extends State<CreateExpense> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Text(
-                                  "   " + memberholder[1].split(' ')[0],
+                                  "   " +
+                                      useThisForMembers[index][1].split(' ')[0],
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                       color: Colors.black,
@@ -241,7 +252,7 @@ class _CreateExpenseState extends State<CreateExpense> {
                                 ),
                                 Flexible(
                                   child: Text(
-                                    "    " + memberholder[0],
+                                    "    " + useThisForMembers[index][0],
                                     overflow: TextOverflow.fade,
                                     style: TextStyle(
                                         color: Colors.black,

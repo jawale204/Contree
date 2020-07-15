@@ -27,10 +27,10 @@ class ExpenseDetails extends StatelessWidget {
   doit(context) async {
     bool p = await sg.deleteExpense(docId, obj);
     snackBar(p);
-   
+
     Future.delayed(const Duration(milliseconds: 500), () {
-       Navigator.pop(context);
-       });
+      Navigator.pop(context);
+    });
   }
 
   @override
