@@ -23,7 +23,6 @@ class _CreateExpenseState extends State<CreateExpense> {
   var contrisum = [];
   var spentsum = [];
   bool done = false;
-  DateTime time = DateTime.now();
 
   final _formKey = GlobalKey<FormState>();
   List<List> useThisForMembers = [];
@@ -63,6 +62,7 @@ class _CreateExpenseState extends State<CreateExpense> {
 
 //converts the usersinfo and there contri,spent in an array where 0 index is the actual total amount and for every next 4 index interval we find userinfo and contri spent
   convert() {
+    DateTime time = DateTime.now();
     List<dynamic> expense = [int.parse(amount.value.text)];
     for (var i = 0; i < members.length; i++) {
       //var memberholder = members[i][1].values.toList();
@@ -73,8 +73,8 @@ class _CreateExpenseState extends State<CreateExpense> {
       expense.add(contrisum[i]);
       expense.add(spentsum[i]);
     }
-    print(expense);
-   // creates obj to add expense
+
+    // creates obj to add expense
     widget.sg.addExpense(expense, description.value.text, widget.obj, time);
     setState(() {
       done = true;
@@ -159,194 +159,209 @@ class _CreateExpenseState extends State<CreateExpense> {
               }
             })
       ]),
-      body: Form(
-        key: _formKey,
-        child: Column(children: <Widget>[
-          Row(
-            children: <Widget>[
-              Icon(Icons.description),
-              Expanded(
-                child: TextFormField(
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'Please enter Description';
-                    }
-                    return null;
-                  },
-                  controller: description,
-                  decoration: InputDecoration(hintText: 'Enter Description'),
-                ),
-              )
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              Icon(Icons.monetization_on),
-              Expanded(
-                child: TextFormField(
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'Please enter Amount';
-                    }
-                    return null;
-                  },
-                  controller: amount,
-                  decoration: InputDecoration(hintText: 'Amount'),
-                  keyboardType: TextInputType.numberWithOptions(),
-                ),
-              )
-            ],
-          ),
-          SizedBox(
-            height: 25,
-          ),
-          Row(
-            children: <Widget>[
-              SizedBox(
-                width: 20,
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: Column(children: <Widget>[
+            Flexible(
+                          child: Row(
+                children: <Widget>[
+                  Icon(Icons.description),
+                  Expanded(
+                    child: TextFormField(
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Please enter Description';
+                        }
+                        return null;
+                      },
+                      controller: description,
+                      decoration: InputDecoration(hintText: 'Enter Description'),
+                    ),
+                  )
+                ],
               ),
-              Text('Member'),
-              SizedBox(
-                width: 70,
+            ),
+            Flexible(
+                          child: Row(
+                children: <Widget>[
+                  Icon(Icons.monetization_on),
+                  Expanded(
+                    child: TextFormField(
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Please enter Amount';
+                        }
+                        return null;
+                      },
+                      controller: amount,
+                      decoration: InputDecoration(hintText: 'Amount'),
+                      keyboardType: TextInputType.numberWithOptions(),
+                    ),
+                  )
+                ],
               ),
-              Text('Contributed'),
-              SizedBox(
-                width: 50,
+            ),
+            SizedBox(
+              height: 25,
+            ),
+            Flexible(
+                          child: Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Text('Member'),
+                  SizedBox(
+                    width: 70,
+                  ),
+                  Text('Contributed'),
+                  SizedBox(
+                    width: 50,
+                  ),
+                  Text('spent')
+                ],
               ),
-              Text('spent')
-            ],
-          ),
-          SizedBox(
-            height: 5,
-          ),
-          ListView.builder(
-              shrinkWrap: true,
-              itemCount: members.length,
-              itemBuilder: (BuildContext context, int index) {
-                // List memberholder = members[index][1].values.toList();
-                return Container(
-                  height: 40,
-                  margin: EdgeInsets.all(3.0),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      color: Colors.grey[300]),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: <Widget>[
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+            SizedBox(
+              height: 5,
+            ),
+            Flexible(
+              flex: 7,
+                          child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: members.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    // List memberholder = members[index][1].values.toList();
+                    return Container(
+                      height: 40,
+                      margin: EdgeInsets.all(3.0),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10.0),
+                          color: Colors.grey[300]),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
                               children: <Widget>[
-                                Text(
-                                  "   " +
-                                      useThisForMembers[index][1].split(' ')[0],
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 17.0,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                                Flexible(
-                                  child: Text(
-                                    "    " + useThisForMembers[index][0],
-                                    overflow: TextOverflow.fade,
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 9.0,
-                                        fontWeight: FontWeight.w400),
-                                  ),
+                                Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      "   " +
+                                          useThisForMembers[index][1]
+                                              .split(' ')[0],
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 17.0,
+                                          fontWeight: FontWeight.w400),
+                                    ),
+                                    Flexible(
+                                      child: Text(
+                                        "    " + useThisForMembers[index][0],
+                                        overflow: TextOverflow.fade,
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 9.0,
+                                            fontWeight: FontWeight.w400),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: <Widget>[
-                          Container(
-                            width: 100,
-                            child: Form(
-                              child: TextFormField(
-                                controller: contribution[index],
-                                decoration: InputDecoration(
-                                  fillColor: Colors.white,
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.lightBlueAccent,
-                                        width: 1.0),
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10.0)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.lightBlueAccent,
-                                        width: 2.0),
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10.0)),
-                                  ),
-                                ),
-                                keyboardType: TextInputType.numberWithOptions(),
-                                validator: (value) {
-                                  if (value.isEmpty) {
-                                    return 'Enter Amount';
-                                  } else {
-                                    return null;
-                                  }
-                                },
-                              ),
-                            ),
                           ),
-                          SizedBox(
-                            width: 20,
-                          ),
-                          Container(
-                            width: 100,
-                            child: Form(
-                              child: TextFormField(
-                                controller: spent[index],
-                                decoration: InputDecoration(
-                                  fillColor: Colors.white,
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.lightBlueAccent,
-                                        width: 1.0),
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10.0)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.lightBlueAccent,
-                                        width: 2.0),
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10.0)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: <Widget>[
+                              Container(
+                                width: 100,
+                                child: Form(
+                                  child: TextFormField(
+                                    controller: contribution[index],
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.lightBlueAccent,
+                                            width: 1.0),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10.0)),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.lightBlueAccent,
+                                            width: 2.0),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10.0)),
+                                      ),
+                                    ),
+                                    keyboardType:
+                                        TextInputType.numberWithOptions(),
+                                    validator: (value) {
+                                      if (value.isEmpty) {
+                                        return 'Enter Amount';
+                                      } else {
+                                        return null;
+                                      }
+                                    },
                                   ),
                                 ),
-                                keyboardType: TextInputType.numberWithOptions(),
-                                validator: (value) {
-                                  if (value.isEmpty) {
-                                    return 'Enter Amount';
-                                  } else {
-                                    return null;
-                                  }
-                                },
                               ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
+                              SizedBox(
+                                width: 20,
+                              ),
+                              Container(
+                                width: 100,
+                                child: Form(
+                                  child: TextFormField(
+                                    controller: spent[index],
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.white,
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.lightBlueAccent,
+                                            width: 1.0),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10.0)),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.lightBlueAccent,
+                                            width: 2.0),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10.0)),
+                                      ),
+                                    ),
+                                    keyboardType:
+                                        TextInputType.numberWithOptions(),
+                                    validator: (value) {
+                                      if (value.isEmpty) {
+                                        return 'Enter Amount';
+                                      } else {
+                                        return null;
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                            ],
+                          )
                         ],
-                      )
-                    ],
-                  ),
-                );
-              }),
-        ]),
+                      ),
+                    );
+                  }),
+            ),
+          ]),
+        ),
       ),
     );
   }

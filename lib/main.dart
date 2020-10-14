@@ -7,11 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-
-void main(){ 
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-  .then((_){
+      .then((_) {
     runApp(Notes());
   });
 }
@@ -20,38 +19,36 @@ class Notes extends StatefulWidget {
   @override
   _NotesState createState() => _NotesState();
 }
+
 String a;
+
 class _NotesState extends State<Notes> {
   @override
-  void initState(){
+  void initState() {
     super.initState();
   }
-  @override 
-  void dispose(){
-  super.dispose();
+
+  @override
+  void dispose() {
+    super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
+   
     return MultiProvider(
-      providers:[ 
-        ChangeNotifierProvider(
-         create:  (context)=>HandleUser()
-           ),
-         ChangeNotifierProvider<SingleGroup>(
-         create:  (context)=>SingleGroup()
-           ),
-         ChangeNotifierProvider(
-         create:  (context)=>Daily()
-           ),
-        ],
-          child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        initialRoute:Welcome.id,
-        routes: {
-           Welcome.id:(context)=>Welcome(),
-            Body.id:(context)=>Body(),
-        }   
-      ),
+      providers: [
+        ChangeNotifierProvider(create: (context) => HandleUser()),
+        ChangeNotifierProvider<SingleGroup>(create: (context) => SingleGroup()),
+        ChangeNotifierProvider(create: (context) => Daily()),
+      ],
+      child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          initialRoute: Welcome.id,
+          routes: {
+            Welcome.id: (context) => Welcome(),
+            Body.id: (context) => Body(),
+          }),
     );
   }
 }

@@ -25,8 +25,7 @@ class Groups with ChangeNotifier {
     });
     await userRef
         .document(HandleUser.userinfo.uid)
-        .collection('Groups')
-        .add({'name': groupname, 'groupid': groupID, 'Date&Time': date});
+        .collection('Groups').document(time.toString().substring(0, 23)).setData({'name': groupname, 'groupid': groupID, 'Date&Time': time});
     await userRef
         .document(HandleUser.userinfo.uid)
         .collection('Activity')
@@ -54,4 +53,6 @@ class Groups with ChangeNotifier {
         groupId: doc['groupid'],
         date: doc['Date&Time']);
   }
+
+
 }

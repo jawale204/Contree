@@ -31,18 +31,19 @@ class HandleUser with ChangeNotifier {
   bool isAuth = false;
   static User userinfo;
   User tocopy;
+  FirebaseUser currentUser;
   login() async {
     GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
     final GoogleSignInAuthentication googleSignInAuthentication =
         await googleSignInAccount.authentication;
-     AuthCredential  credential = GoogleAuthProvider.getCredential(
+    AuthCredential credential = GoogleAuthProvider.getCredential(
         idToken: googleSignInAuthentication.idToken,
         accessToken: googleSignInAuthentication.accessToken);
     final AuthResult authResult = await _auth.signInWithCredential(credential);
     final FirebaseUser user = authResult.user;
     assert(!user.isAnonymous);
     assert(await user.getIdToken() != null);
-    final FirebaseUser currentUser = await _auth.currentUser();
+    currentUser = await _auth.currentUser();
     assert(user.uid == currentUser.uid);
     isAuth = true;
     DocumentSnapshot doc = await userRef.document(currentUser.uid).get();
@@ -55,7 +56,9 @@ class HandleUser with ChangeNotifier {
     notifyListeners();
   }
 
- 
+   check() {
+    print(currentUser.uid);
+  }
 
   logout(context) async {
     await googleSignIn.signOut();

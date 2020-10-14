@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 class ExpenseDetails extends StatelessWidget {
   final String name;
   final DateTime time;
-  final List<List> cal;
-  final int expense;
+  final List expense;
   final SingleGroup sg;
   final int docId;
+  final int total;
   final Groups obj;
-  ExpenseDetails(this.name, this.cal, this.time, this.expense, this.sg,
-      this.obj, this.docId);
+  ExpenseDetails(this.name, this.time, this.expense, this.sg, this.obj,
+      this.docId, this.total);
   final GlobalKey<ScaffoldState> _scaffoldstate =
       new GlobalKey<ScaffoldState>();
   snackBar(bool present) {
@@ -35,6 +35,7 @@ class ExpenseDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+   // List pleasework = expense.sublist(1, expense.length);
     return Scaffold(
       key: _scaffoldstate,
       appBar: AppBar(
@@ -49,7 +50,7 @@ class ExpenseDetails extends StatelessWidget {
           child: Container(
               padding: EdgeInsets.all(10),
               child: Text(
-                'Expense Amount : ' + expense.toString(),
+                'Expense Amount : ' + total.toString(),
                 style: TextStyle(
                     fontSize: 25,
                     fontWeight: FontWeight.bold,
@@ -74,7 +75,7 @@ class ExpenseDetails extends StatelessWidget {
         ),
         ListView.builder(
             shrinkWrap: true,
-            itemCount: cal.length,
+            itemCount: (expense.length) ~/ 6,
             itemBuilder: (BuildContext context, int index) {
               return Container(
                 height: 35,
@@ -93,14 +94,15 @@ class ExpenseDetails extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              "   " + cal[index][1].split(" ")[0],
+                              "   " +
+                                  expense[index * 6 +2].split(" ")[0],
                               style: TextStyle(
                                   color: Colors.black,
                                   fontSize: 17.0,
                                   fontWeight: FontWeight.w400),
                             ),
                             Text(
-                              "      " + cal[index][0],
+                              "      " + expense[6 * index + 1],
                               overflow: TextOverflow.fade,
                               style: TextStyle(
                                   color: Colors.black,
@@ -115,13 +117,15 @@ class ExpenseDetails extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
                         Container(
-                            width: 105, child: Text(cal[index][4].toString())),
+                            width: 105,
+                            child:
+                                Text(expense[6 * index +5].toString())),
                         SizedBox(
                           width: 20,
                         ),
                         Container(
                           width: 80,
-                          child: Text(cal[index][5].toString()),
+                          child: Text(expense[index * 6 +6].toString()),
                         ),
                         SizedBox(
                           width: 10,

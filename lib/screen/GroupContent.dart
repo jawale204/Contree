@@ -2,6 +2,8 @@ import 'package:Contri/models/Groups.dart';
 import 'package:Contri/models/HandleUser.dart';
 import 'package:Contri/models/singleGroup.dart';
 import 'package:Contri/screen/ExpenseDetail.dart';
+import 'package:Contri/screen/Group.dart';
+import 'package:Contri/screen/GroupChatScreen.dart';
 import 'package:Contri/screen/SearchUsers.dart';
 import 'package:Contri/screen/createExpense.dart';
 import 'package:Contri/widget/progress.dart';
@@ -24,6 +26,7 @@ class _GroupContentState extends State<GroupContent> {
   List<List> settleAndpay;
   int totalallexpense;
   List<List> membersCS = [];
+
   @override
   initState() {
     super.initState();
@@ -77,6 +80,43 @@ class _GroupContentState extends State<GroupContent> {
     }
   }
 
+  dothisForExpenseTile(expense) {
+    List<List> cal = [];
+    var j = 1;
+    for (var i = 1; i <= expense.length / 6; i++) {
+      cal.add([
+        expense[j],
+        expense[j + 1],
+        expense[j + 2],
+        expense[j + 3],
+        expense[j + 4],
+        expense[j + 5]
+      ]);
+      j = j + 6;
+    }
+    return cal;
+  }
+
+  void popmethod(String choice) async {
+    if (choice == Pop.settings) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              //passing Groups obj and members list to the createexpense page
+              builder: (context) => Search(obj: widget.obj)));
+    } else if (choice == Pop.chat) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              //passing Groups obj and members list to the createexpense page
+              builder: (context) => ChatScreen(obj: widget.obj)));
+    } else if (choice == Pop.groupinfo) {
+      SingleGroup sbg = new SingleGroup();
+      await sbg.leaveGroup(widget.obj);
+      Navigator.of(context).popUntil(ModalRoute.withName(Group.id));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sg = Provider.of<SingleGroup>(context, listen: true);
@@ -87,15 +127,15 @@ class _GroupContentState extends State<GroupContent> {
         title: Text(widget.obj.groupName),
         centerTitle: true,
         actions: <Widget>[
-          Center(child: Text('Add Member')),
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      //passing Groups obj and members list to the createexpense page
-                      builder: (context) => Search(obj: widget.obj)));
+          PopupMenuButton(
+            onSelected: popmethod,
+            itemBuilder: (BuildContext context) {
+              return Pop.pops
+                  .map((String choice) => PopupMenuItem(
+                        value: choice,
+                        child: Text(choice),
+                      ))
+                  .toList();
             },
           )
         ],
@@ -149,20 +189,17 @@ class _GroupContentState extends State<GroupContent> {
           flex: 5,
           child: Stack(
             children: <Widget>[
-              FutureBuilder(
-                  initialData: b,
+              FutureBuilder<QuerySnapshot>(
                   future: allExpenses,
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    List<ExpensTile> names = [];
                     if (snapshot.hasData) {
-                      List<ExpensTile> names = [];
                       var i = 0;
                       snapshot.data.documents.forEach((data1) {
                         var a = SingleGroup.fromDocument(data1);
-                        setState(() {
-                           names.add(ExpensTile(
+                        // var go=dothisForExpenseTile(a.expense);
+                        names.add(new ExpensTile(
                             a.name, a.date, a.expense, sg, widget.obj, i));
-                        });
-                       
                         i = i + 1;
                       });
 
@@ -299,10 +336,7 @@ class ExpensTile extends StatefulWidget {
 }
 
 class _ExpensTileState extends State<ExpensTile> {
-  final List<List> cal = [];
-  static int myContri;
-  static int mySpent;
-
+  var j;
   @override
   initState() {
     super.initState();
@@ -313,25 +347,15 @@ class _ExpensTileState extends State<ExpensTile> {
     var j = 1;
     for (var i = 1; i <= widget.expense.length / 6; i++) {
       if (HandleUser.userinfo.uid == widget.expense[j + 2]) {
-        myContri = widget.expense[j + 4];
-        mySpent = widget.expense[j + 5];
+        this.j = j;
       }
-      var a = [
-        widget.expense[j],
-        widget.expense[j + 1],
-        widget.expense[j + 2],
-        widget.expense[j + 3],
-        widget.expense[j + 4],
-        widget.expense[j + 5]
-      ];
-      cal.add(a);
       j = j + 6;
     }
-  
   }
 
   @override
   Widget build(BuildContext context) {
+    Future.delayed(Duration(seconds: 2));
     return Container(
         height: 60,
         margin: EdgeInsets.all(3.0),
@@ -341,16 +365,20 @@ class _ExpensTileState extends State<ExpensTile> {
         ),
         child: ListTile(
           isThreeLine: true,
-          title: Text(widget.name),
-          subtitle: Text("Your Conti : " + myContri.toString()),
+          title: Text(this.widget.name),
+          subtitle: Text("Your Conti : " + widget.expense[j + 4].toString()),
           trailing: Column(
             children: <Widget>[
-              Text("Total Amount : " + widget.expense[0].toString()),
-              if ((myContri - mySpent) < 0)
-                Text("You owe : " + (-(myContri - mySpent)).toString()),
-              if ((myContri - mySpent) > 0)
-                Text("You lend : " + (myContri - mySpent).toString()),
-              if ((myContri - mySpent) == 0) Text(" Settled "),
+              Text("Total Amount : " + this.widget.expense[0].toString()),
+              if ((widget.expense[j + 4] - widget.expense[j + 5]) < 0)
+                Text("You owe : " +
+                    (-(widget.expense[j + 4] - widget.expense[j + 5]))
+                        .toString()),
+              if ((widget.expense[j + 4] - widget.expense[j + 5]) > 0)
+                Text("You lend : " +
+                    (widget.expense[j + 4] - widget.expense[j + 5]).toString()),
+              if ((widget.expense[j + 4] - widget.expense[j + 5]) == 0)
+                Text(" Settled "),
             ],
           ),
           onTap: () {
@@ -358,14 +386,22 @@ class _ExpensTileState extends State<ExpensTile> {
                 context,
                 MaterialPageRoute(
                     builder: (context) => ExpenseDetails(
-                        widget.name,
-                        cal,
-                        time,
-                        widget.expense[0],
-                        widget.sg,
-                        widget.obj,
-                        widget.docId)));
+                        this.widget.name,
+                        this.widget.time,
+                        this.widget.expense,
+                        this.widget.sg,
+                        this.widget.obj,
+                        this.widget.docId,
+                        this.widget.expense[0])));
           },
         ));
   }
+}
+
+class Pop {
+  static String groupinfo = 'Leave Group';
+  static String chat = 'Chat Screen';
+  static String settings = 'Add Member';
+
+  static List<String> pops = [groupinfo, chat, settings];
 }

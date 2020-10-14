@@ -28,16 +28,19 @@ class SingleGroup with ChangeNotifier {
   }
 
   //adds expense with expense list its description //obj for that particular group info
-  addExpense(expense, description, obj, time) async{
+  addExpense(expense, description, obj, time) async {
     groups
         .document(obj.groupId)
         .collection('Expense')
         .add({'name': description, 'expense': expense, 'Date&Time': time});
-   await userRef
+    await userRef
         .document(HandleUser.userinfo.uid)
         .collection('Activity')
         .document(time.toString().substring(0, 23))
-        .setData({'data': 'You added a Expense in group : ${obj.groupName}','date':time});
+        .setData({
+      'data': 'You added a Expense in group : ${obj.groupName}',
+      'date': time
+    });
     notifyListeners();
   }
 
@@ -74,7 +77,10 @@ class SingleGroup with ChangeNotifier {
         .document(HandleUser.userinfo.uid)
         .collection('Activity')
         .document(time.toString().substring(0, 23))
-        .setData({'data': 'You deleted a Expense in group : ${obj.groupName}','date':time});
+        .setData({
+      'data': 'You deleted a Expense in group : ${obj.groupName}',
+      'date': time
+    });
     notifyListeners();
     return true;
   }
@@ -114,8 +120,46 @@ class SingleGroup with ChangeNotifier {
         .document(HandleUser.userinfo.uid)
         .collection('Activity')
         .document(time.toString().substring(0, 23))
-        .setData({'data': 'You added ${user.email} in group : ${obj.groupName}','date':time});
+        .setData({
+      'data': 'You added ${user.email} in group : ${obj.groupName}',
+      'date': time
+    });
     notifyListeners();
-    return (present);
+  }
+
+  leaveGroup(Groups obj) async {
+    DateTime time = DateTime.now();
+    QuerySnapshot a = await Firestore.instance
+        .collection('GroupsDB')
+        .document(obj.groupId)
+        .collection('Members')
+        .where('email', isEqualTo: HandleUser.userinfo.email)
+        .getDocuments();
+    var deleteid = a.documents.first.documentID;
+    Firestore.instance
+        .collection('GroupsDB')
+        .document(obj.groupId)
+        .collection('Members')
+        .document(deleteid)
+        .delete();
+    QuerySnapshot b = await Firestore.instance
+        .collection('users')
+        .document(HandleUser.userinfo.uid)
+        .collection('Groups')
+        .where('groupid', isEqualTo: obj.groupId)
+        .getDocuments();
+    var deleteid2 = b.documents.first.documentID;
+    Firestore.instance
+        .collection('users')
+        .document(HandleUser.userinfo.uid)
+        .collection('Groups')
+        .document(deleteid2)
+        .delete();
+    userRef
+        .document(HandleUser.userinfo.uid)
+        .collection('Activity')
+        .document(time.toString().substring(0, 23))
+        .setData({'data': 'You left Group ${obj.groupName}', 'date': time});
+    notifyListeners();
   }
 }
