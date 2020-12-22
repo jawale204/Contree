@@ -1,5 +1,6 @@
 import 'package:Contri/models/Groups.dart';
 import 'package:Contri/models/HandleUser.dart';
+import 'package:Contri/widget/progress.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -16,7 +17,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('GroupChat'),),
+      appBar: AppBar(
+        title: Text('GroupChat'),
+      ),
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -40,17 +43,18 @@ class _ChatScreenState extends State<ChatScreen> {
                 Padding(
                   padding: const EdgeInsets.all(3.0),
                   child: FlatButton(
-                    color: Colors.blueAccent,
+                      color: Colors.blueAccent,
                       onPressed: () {
                         if (messcontroller.value.text.isNotEmpty) {
-                          Firestore.instance
+                          FirebaseFirestore.instance
                               .collection('GroupsDB')
-                              .document(widget.obj.groupId)
+                              .doc(widget.obj.groupId)
                               .collection('Chats')
                               .add({
                             'txt': messcontroller.value.text,
                             'date': DateTime.now().toIso8601String().toString(),
-                            'sendby': HandleUser.userinfo.email
+                            'sendby': HandleUser.userinfo.email,
+                            'type': "text"
                           });
                           messcontroller.clear();
                         }
@@ -80,21 +84,36 @@ class MessageStream extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     DocumentReference groups =
-        Firestore.instance.collection('GroupsDB').document(obj.groupId);
+        FirebaseFirestore.instance.collection('GroupsDB').doc(obj.groupId);
     return Flexible(
-          child: StreamBuilder<QuerySnapshot>(
+      child: StreamBuilder<QuerySnapshot>(
           stream: groups.collection('Chats').orderBy('date').snapshots(),
           builder: (BuildContext context, AsyncSnapshot<dynamic> a) {
             if (a.hasData) {
               final messages = a.data.documents.reversed;
-              List<MessageBubble> bubbles = [];
+              List<Widget> bubbles = [];
               messages.forEach((doc) {
                 bool isme = false;
                 if (HandleUser.userinfo.email == doc['sendby']) {
                   isme = true;
                 }
-                bubbles.add(
-                    MessageBubble(isme, doc['txt'], doc['date'], doc['sendby']));
+                if (doc['type'] == "Notify") {
+                  bubbles.add(Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(20)
+                      ),
+                      child: Center(child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(doc['note']),
+                      ))),
+                  ));
+                } else {
+                  bubbles.add(MessageBubble(isme, doc['txt'], doc['date'],
+                      doc['sendby'], doc['type']));
+                }
               });
               return ListView(
                 shrinkWrap: true,
@@ -103,9 +122,7 @@ class MessageStream extends StatelessWidget {
                 reverse: true,
               );
             } else {
-              return CircularProgressIndicator(
-                backgroundColor: Colors.lightBlueAccent,
-              );
+              return circularProgress();
             }
           }),
     );
@@ -117,7 +134,8 @@ class MessageBubble extends StatelessWidget {
   final String txt;
   final String date;
   final String sendby;
-  MessageBubble(this.isMe, this.txt, this.date, this.sendby);
+  final String type;
+  MessageBubble(this.isMe, this.txt, this.date, this.sendby, this.type);
   @override
   Widget build(BuildContext context) {
     return Padding(

@@ -6,160 +6,324 @@ import 'package:flutter/material.dart';
 class SingleGroup with ChangeNotifier {
   final Groups obj;
   String name;
-  DateTime date;
-  List expense;
+  dynamic date;
+  Map<dynamic, dynamic> expense;
   String docId;
-  SingleGroup({this.obj, this.expense, this.name, this.date, this.docId});
-  static CollectionReference groups = Firestore.instance.collection('GroupsDB');
-  QuerySnapshot expenses;
-  List docID = [];
+  String creator;
+  dynamic pickedTime;
+  FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  SingleGroup(
+      {this.obj,
+      this.expense,
+      this.name,
+      this.date,
+      this.docId,
+      this.creator,
+      this.pickedTime});
+  static CollectionReference groups =
+      FirebaseFirestore.instance.collection('GroupsDB');
+  QuerySnapshot expensesq;
+  Stream<QuerySnapshot> expenses;
+  //List docID = [];
   // returns members list
-  Future<Map<String, Map<String, dynamic>>> allMembers(vobj) async {
-    DocumentReference allMembersAndExpense = groups.document(vobj.groupId);
-    QuerySnapshot members =
-        await allMembersAndExpense.collection('Members').getDocuments();
+  Future<dynamic> allMembers(vobj) async {
     Map<String, Map<String, dynamic>> memberMap = {};
-    var i = 0;
-    members.documents.forEach((element) {
-      i = i + 1;
-      memberMap.addAll({'member' + i.toString(): element.data});
-    });
+    try {
+      DocumentReference allMembersAndExpense = groups.doc(vobj.groupId);
+      QuerySnapshot members =
+          await allMembersAndExpense.collection('Members').get();
+
+      var i = 0;
+      members.docs.forEach((element) {
+        i = i + 1;
+        memberMap.addAll({'member' + i.toString(): element.data()});
+      });
+    } catch (e) {
+      print(e.code);
+      return e.code;
+    }
+
     return memberMap;
   }
 
   //adds expense with expense list its description //obj for that particular group info
-  addExpense(expense, description, obj, time) async {
-    groups
-        .document(obj.groupId)
-        .collection('Expense')
-        .add({'name': description, 'expense': expense, 'Date&Time': time});
-    await userRef
-        .document(HandleUser.userinfo.uid)
-        .collection('Activity')
-        .document(time.toString().substring(0, 23))
-        .setData({
-      'data': 'You added a Expense in group : ${obj.groupName}',
-      'date': time
-    });
-    notifyListeners();
+  Future<dynamic> addExpense(expense, description, obj, time, picked) async {
+    WriteBatch writebatch = _firestore.batch();
+    try {
+      DocumentReference docref1 = groups
+          .doc(obj.groupId)
+          .collection('Expense')
+          .doc(time.toString().substring(0, 23));
+      writebatch.set(docref1, {
+        'name': description,
+        'expense': expense,
+        'Date&Time': time,
+        "creator": HandleUser.userinfo.email,
+        'pickedTime': picked
+      });
+      // groups
+      //     .document(obj.groupId)
+      //     .collection('Expense')
+      //     .document(time.toString().substring(0, 23))
+      //     .setData({
+      //   'name': description,
+      //   'expense': expense,
+      //   'Date&Time': time,
+      //   "creator": HandleUser.userinfo.email
+      // });
+      // DocumentReference docref2 = userRef
+      //     .doc(HandleUser.userinfo.uid)
+      //     .collection('Activity')
+      //     .doc(time.toString().substring(0, 23));
+      // writebatch.set(docref2, {
+      //   'data': 'You added an Expense in group : ${obj.groupName}',
+      //   'date': time,
+      //   'type': "Group"
+      // });
+      DocumentReference docref3 =
+          groups.doc(obj.groupId).collection('Chats').doc();
+      writebatch.set(docref3, {
+        'date': DateTime.now().toIso8601String().toString(),
+        'sendby': HandleUser.userinfo.email,
+        'type': "Notify",
+        'note': '${HandleUser.userinfo.email} created an Expense $description',
+      });
+      // groups.doc(obj.groupId).collection('Chats').add({
+      //   'date': DateTime.now().toIso8601String().toString(),
+      //   'sendby': HandleUser.userinfo.email,
+      //   'type': "Notify",
+      //   'note': '${HandleUser.userinfo.email} created an Expense $description',
+      // });
+      // await userRef
+      //     .document(HandleUser.userinfo.uid)
+      //     .collection('Activity')
+      //     .document(time.toString().substring(0, 23))
+      //     .setData({
+      //   'data': 'You added a Expense in group : ${obj.groupName}',
+      //   'date': time
+      // });
+      writebatch.commit();
+    } catch (e) {
+      print(e.code);
+      return e.code;
+    }
+    //notifyListeners();
+    return true;
   }
 
-  Future<QuerySnapshot> allExpense(vobj) async {
-    docID = [];
-    DocumentReference allMembersAndExpense = groups.document(vobj.groupId);
-    expenses = await allMembersAndExpense
+  Stream<QuerySnapshot> allExpense(vobj) {
+    DocumentReference allMembersAndExpense = groups.doc(vobj.groupId);
+    //  plz(vobj);
+    expenses = allMembersAndExpense
         .collection('Expense')
         .orderBy('Date&Time', descending: true)
-        .getDocuments();
-
-    expenses.documents.forEach((element) {
-      docID.add([element.documentID]);
-    });
+        .snapshots();
     return expenses;
   }
 
+  // plz(vobj) async {
+  //   docID = [];
+  //   try {
+  //     DocumentReference allMembersAndExpense = groups.doc(vobj.groupId);
+  //     expensesq = await allMembersAndExpense
+  //         .collection('Expense')
+  //         .orderBy('Date&Time', descending: true)
+  //         .get();
+  //     expensesq.docs.forEach((element) {
+  //       docID.add([element.id]);
+  //     });
+  //   } catch (e) {
+  //     print(e.code);
+  //     print(e.code);
+  //   }
+  // }
+
   factory SingleGroup.fromDocument(DocumentSnapshot doc) {
     return SingleGroup(
-      name: doc['name'],
-      expense: doc['expense'],
-      date: doc['Date&Time'].toDate(),
-    );
+        name: doc['name'],
+        expense: doc['expense'],
+        date: doc['Date&Time'],
+        creator: doc['creator'],
+        pickedTime: doc['pickedTime']);
   }
 
-  Future<bool> deleteExpense(docId, obj) async {
+  Future<dynamic> deleteExpense(docId, obj, a) async {
     DateTime time = DateTime.now();
-    await groups
-        .document(obj.groupId)
-        .collection('Expense')
-        .document(docID[docId][0])
-        .delete();
-    await userRef
-        .document(HandleUser.userinfo.uid)
-        .collection('Activity')
-        .document(time.toString().substring(0, 23))
-        .setData({
-      'data': 'You deleted a Expense in group : ${obj.groupName}',
-      'date': time
-    });
+    WriteBatch writebatch = _firestore.batch();
+    var koko = a.date.toDate().toString();
+    try {
+      DocumentReference docref1 =
+          groups.doc(obj.groupId).collection('Expense').doc(koko);
+      writebatch.delete(docref1);
+     
+       DocumentReference docref3 =
+          groups.doc(obj.groupId).collection('Chats').doc();
+      writebatch.set(docref3, {
+        'date': DateTime.now().toIso8601String().toString(),
+        'sendby': HandleUser.userinfo.email,
+        'type': "Notify",
+        'note': '${HandleUser.userinfo.email} deleted an Expense ${a.name}',
+      });
+     
+      writebatch.commit();
+    } catch (e) {
+      print(e.code);
+      return e.code;
+    }
     notifyListeners();
     return true;
   }
 
-  Future<bool> addMember(user, Groups obj) async {
+  addMember(user, Groups obj) async {
     DateTime time = DateTime.now();
-    bool present;
-    QuerySnapshot isPresent = await Firestore.instance
-        .collection('GroupsDB')
-        .document(obj.groupId)
-        .collection('Members')
-        .getDocuments();
-    var a = isPresent.documents
-        .any((element) => element.data.containsValue(user.uid));
-    if (!a) {
-      await Firestore.instance
+    WriteBatch writebatch = _firestore.batch();
+    var a;
+    try {
+      QuerySnapshot isPresent = await FirebaseFirestore.instance
           .collection('GroupsDB')
-          .document(obj.groupId)
+          .doc(obj.groupId)
           .collection('Members')
-          .document()
-          .setData({
-        'name': user.displayName,
-        'uid': user.uid,
-        'photoUrl': user.photoUrl,
-        'email': user.email,
-      });
-      await userRef.document(user.uid).collection('Groups').add({
-        'name': obj.groupName,
-        'groupid': obj.groupId,
-        'Date&Time': obj.date
-      });
-      present = false;
-    } else {
-      present = true;
+          .get();
+      a = isPresent.docs
+          .any((element) => element.data().containsValue(user.uid));
+    } catch (e) {
+      print(e.code);
+      return e.code;
     }
-    await userRef
-        .document(HandleUser.userinfo.uid)
-        .collection('Activity')
-        .document(time.toString().substring(0, 23))
-        .setData({
-      'data': 'You added ${user.email} in group : ${obj.groupName}',
-      'date': time
-    });
+
+    try {
+      if (!a) {
+        DocumentReference docref1 = FirebaseFirestore.instance
+            .collection('GroupsDB')
+            .doc(obj.groupId)
+            .collection('Members')
+            .doc();
+        writebatch.set(docref1, {
+          'name': user.displayName,
+          'uid': user.uid,
+          'photoUrl': user.photoUrl,
+          'email': user.email,
+        });
+    
+        DocumentReference docref2 =
+            userRef.doc(user.uid).collection('Groups').doc();
+        writebatch.set(docref2, {
+          'name': obj.groupName,
+          'groupid': obj.groupId,
+          'Date&Time': obj.date
+        });
+        DocumentReference docref4 =
+          groups.doc(obj.groupId).collection('Chats').doc();
+      writebatch.set(docref4, {
+        'date': DateTime.now().toIso8601String().toString(),
+        'sendby': HandleUser.userinfo.email,
+        'type': "Notify",
+        'note': '${HandleUser.userinfo.email} Added ${user.email} to the group',
+      });
+        writebatch.commit();
+      }
+    } catch (e) {
+      print(e.code);
+      return e.code;
+    }
+
     notifyListeners();
+    return !a;
   }
 
   leaveGroup(Groups obj) async {
     DateTime time = DateTime.now();
-    QuerySnapshot a = await Firestore.instance
+    var deleteid;
+    var deleteid2;
+    bool deleteGroup = false;
+    WriteBatch writebatch = _firestore.batch();
+    try {
+      QuerySnapshot a = await FirebaseFirestore.instance
+          .collection('GroupsDB')
+          .doc(obj.groupId)
+          .collection('Members')
+          .where('email', isEqualTo: HandleUser.userinfo.email)
+          .get();
+       QuerySnapshot chesk = await FirebaseFirestore.instance
+          .collection('GroupsDB')
+          .doc(obj.groupId)
+          .collection('Members')
+          .get();
+      if (chesk.docs.length == 1) {
+        DocumentReference docrefDG =
+            FirebaseFirestore.instance.collection('GroupsDB').doc(obj.groupId);
+        docrefDG.collection('Chats').snapshots().forEach((element) => {
+              for (QueryDocumentSnapshot snapshot in element.docs)
+                {snapshot.reference.delete()}
+            });
+        docrefDG.collection('Expense').snapshots().forEach((element) => {
+              for (QueryDocumentSnapshot snapshot in element.docs)
+                {snapshot.reference.delete()}
+            });
+        // deleteGroup = true;
+      }
+      deleteid = a.docs.first.id;
+      QuerySnapshot b = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(HandleUser.userinfo.uid)
+          .collection('Groups')
+          .where('groupid', isEqualTo: obj.groupId)
+          .get();
+      deleteid2 = b.docs.first.id;
+    } catch (e) {
+      print(e.code);
+      return e.code;
+    }
+
+    DocumentReference docref1 = FirebaseFirestore.instance
         .collection('GroupsDB')
-        .document(obj.groupId)
+        .doc(obj.groupId)
         .collection('Members')
-        .where('email', isEqualTo: HandleUser.userinfo.email)
-        .getDocuments();
-    var deleteid = a.documents.first.documentID;
-    Firestore.instance
-        .collection('GroupsDB')
-        .document(obj.groupId)
-        .collection('Members')
-        .document(deleteid)
-        .delete();
-    QuerySnapshot b = await Firestore.instance
+        .doc(deleteid);
+    writebatch.delete(docref1);
+
+    // Firestore.instance
+    //     .collection('GroupsDB')
+    //     .document(obj.groupId)
+    //     .collection('Members')
+    //     .document(deleteid)
+    //     .delete();
+    DocumentReference docref2 = FirebaseFirestore.instance
         .collection('users')
-        .document(HandleUser.userinfo.uid)
+        .doc(HandleUser.userinfo.uid)
         .collection('Groups')
-        .where('groupid', isEqualTo: obj.groupId)
-        .getDocuments();
-    var deleteid2 = b.documents.first.documentID;
-    Firestore.instance
-        .collection('users')
-        .document(HandleUser.userinfo.uid)
-        .collection('Groups')
-        .document(deleteid2)
-        .delete();
-    userRef
-        .document(HandleUser.userinfo.uid)
+        .doc(deleteid2);
+    writebatch.delete(docref2);
+    // Firestore.instance
+    //     .collection('users')
+    //     .document(HandleUser.userinfo.uid)
+    //     .collection('Groups')
+    //     .document(deleteid2)
+    //     .delete();
+    DocumentReference docref3 = userRef
+        .doc(HandleUser.userinfo.uid)
         .collection('Activity')
-        .document(time.toString().substring(0, 23))
-        .setData({'data': 'You left Group ${obj.groupName}', 'date': time});
+        .doc(time.toString().substring(0, 23));
+    writebatch.set(docref3, {
+      'data': 'You left Group ${obj.groupName}',
+      'date': time,
+      'type': "Group"
+    });
+      DocumentReference docref4 =
+          groups.doc(obj.groupId).collection('Chats').doc();
+      writebatch.set(docref4, {
+        'date': DateTime.now().toIso8601String().toString(),
+        'sendby': HandleUser.userinfo.email,
+        'type': "Notify",
+        'note': '${HandleUser.userinfo.email} left the group',
+      });
+    // userRef
+    //     .document(HandleUser.userinfo.uid)
+    //     .collection('Activity')
+    //     .document(time.toString().substring(0, 23))
+    //     .setData({'data': 'You left Group ${obj.groupName}', 'date': time});
+    writebatch.commit();
     notifyListeners();
+    return true;
   }
 }

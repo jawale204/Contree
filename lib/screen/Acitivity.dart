@@ -9,44 +9,84 @@ class Activity extends StatefulWidget {
   _ActivityState createState() => _ActivityState();
 }
 
-class _ActivityState extends State<Activity> {
+class _ActivityState extends State<Activity>
+    with AutomaticKeepAliveClientMixin {
+  var da1;
+  Stream<QuerySnapshot> a;
+  @override
+  initState() {
+    super.initState();
+    da1 = Provider.of<ActivityClass>(context, listen: false);
+    a = da1.getActivity();
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
-    final da = Provider.of<Daily>(context);
-    Future<QuerySnapshot> a = da.getActivity();
+    super.build(context);
+    print("Activity");
     return Container(
-      child: FutureBuilder(
-          future: a,
+      child: StreamBuilder(
+          stream: a,
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasData) {
               List<Widget> activity = [];
-              snapshot.data.documents.forEach((element) {
+              snapshot.data.docs.forEach((element) {
                 activity.add(Container(
                   width: MediaQuery.of(context).size.width * 0.95,
-                  height: 45,
+                  // height: 45,
                   margin: EdgeInsets.all(4.0),
                   decoration: BoxDecoration(
                     color: Colors.grey[300],
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Text(
-                        element['data'],
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                        style: TextStyle(fontSize: 17, color: Colors.grey),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Text(
+                          "Type :   " + element['type'],
+                          style: TextStyle(fontSize: 17),
+                        ),
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Text(
+                          "Activity :    " + element['data'],
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                          style: TextStyle(fontSize: 17),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Text(
+                          "Date & Time :   " +
+                              element['date'].toDate().toString(),
+                          style: TextStyle(fontSize: 17),
+                        ),
+                      ),
+                    ],
                   ),
                 ));
               });
-              return ListView(
-                  shrinkWrap: true,
-                  children: activity,
-                  scrollDirection: Axis.vertical);
+              return activity.length != 0
+                  ? ListView(
+                      shrinkWrap: true,
+                      children: activity,
+                      scrollDirection: Axis.vertical)
+                  : Center(
+                      child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.notifications_none, size: 100),
+                        Text("No Activity Found")
+                      ],
+                    ));
             } else {
               return circularProgress();
             }
